@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Editor from '@monaco-editor/react';
+import { Play, FastForward, RotateCcw, Microscope } from 'lucide-react';
 import './App.css';
 
 function App() {
@@ -8,27 +9,41 @@ function App() {
 
   const handleRun = () => {
     setIsRunning(true);
-    // In Week 2/3, we will send this code to our engine here!
     console.log("Code to simulate:", code);
-    setTimeout(() => setIsRunning(false), 500); // Fake loading for now
+    setTimeout(() => setIsRunning(false), 500);
   };
 
   return (
     <div className="app-container">
       {/* Header */}
       <header className="header">
-        <h1>Logic<span>Lens</span></h1>
-        <button onClick={handleRun} disabled={isRunning} className="run-btn">
-          {isRunning ? 'Simulating...' : '▶ Simulate'}
-        </button>
+        <div className="logo">
+          <Microscope size={24} className="logo-icon" />
+          <h1>Logic<span>Lens</span></h1>
+        </div>
+        <div className="controls">
+          <button className="control-btn secondary">
+            <RotateCcw size={16} />
+          </button>
+          <button className="control-btn secondary">
+            <FastForward size={16} />
+          </button>
+          <button onClick={handleRun} disabled={isRunning} className="control-btn primary">
+            <Play size={16} fill="currentColor" />
+            {isRunning ? 'Simulating...' : 'Simulate'}
+          </button>
+        </div>
       </header>
 
       {/* Main Content Split */}
       <main className="main-content">
         {/* Left Pane: Code Editor */}
         <div className="editor-pane">
+          <div className="pane-header">
+            <span>script.js</span>
+          </div>
           <Editor
-            height="100%"
+            height="calc(100% - 35px)"
             defaultLanguage="javascript"
             value={code}
             onChange={(value) => setCode(value)}
@@ -36,16 +51,37 @@ function App() {
             options={{
               fontSize: 14,
               minimap: { enabled: false },
-              lineNumbers: 'on'
+              lineNumbers: 'on',
+              scrollBeyondLastLine: false,
+              fontFamily: '"Fira Code", monospace',
             }}
           />
         </div>
 
-        {/* Right Pane: Visualizer (Empty for now) */}
+        {/* Right Pane: Visualizer */}
         <div className="visualizer-pane">
-          <div className="placeholder">
-            <h2>Memory & Call Stack</h2>
-            <p>Click "Simulate" to visualize your code execution.</p>
+          {/* Visualizer Section 1: Memory */}
+          <div className="viz-section memory-section">
+            <div className="pane-header">
+              <span>Memory & Variables</span>
+            </div>
+            <div className="viz-content">
+              <div className="empty-state">
+                <p>Click "Simulate" to begin tracing memory.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Visualizer Section 2: Call Stack */}
+          <div className="viz-section stack-section">
+            <div className="pane-header">
+              <span>Call Stack</span>
+            </div>
+            <div className="viz-content">
+              <div className="empty-state">
+                <p>Function calls will appear here.</p>
+              </div>
+            </div>
           </div>
         </div>
       </main>
