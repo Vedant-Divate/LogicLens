@@ -37,7 +37,7 @@
   font-weight: 700;
   color: #e6edf3;
   letter-spacing: -0.5px;
-  text-transform: lowercase;
+  /* text-transform: lowercase; */
 }
 
 .logo h1 span {

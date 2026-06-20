@@ -21,7 +21,7 @@ for (let i = 0; i < arr.length; i++) {
       <header className="header">
         <div className="logo">
           <Microscope size={24} className="logo-icon" />
-          <h1>logic<span>lens</span></h1>
+          <h1>Logic<span>Lens</span></h1>
         </div>
         <div className="controls">
           <button className="control-btn secondary"><RotateCcw size={16} /></button>
