@@ -4,7 +4,10 @@ import { Play, FastForward, RotateCcw, Microscope } from 'lucide-react';
 import './App.css';
 
 function App() {
-  const [code, setCode] = useState(`// Welcome to LogicLens\nlet x = 5;\nlet y = x + 10;\nconsole.log(y);`);
+  const [code, setCode] = useState(`let arr = [10, 20, 30];
+for (let i = 0; i < arr.length; i++) {
+  let sum = arr[i] + 5;
+}`);
   const [isRunning, setIsRunning] = useState(false);
 
   const handleRun = () => {
@@ -15,19 +18,14 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Header */}
       <header className="header">
         <div className="logo">
           <Microscope size={24} className="logo-icon" />
-          <h1>Logic<span>Lens</span></h1>
+          <h1>logic<span>lens</span></h1>
         </div>
         <div className="controls">
-          <button className="control-btn secondary">
-            <RotateCcw size={16} />
-          </button>
-          <button className="control-btn secondary">
-            <FastForward size={16} />
-          </button>
+          <button className="control-btn secondary"><RotateCcw size={16} /></button>
+          <button className="control-btn secondary"><FastForward size={16} /></button>
           <button onClick={handleRun} disabled={isRunning} className="control-btn primary">
             <Play size={16} fill="currentColor" />
             {isRunning ? 'Simulating...' : 'Simulate'}
@@ -35,13 +33,10 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content Split */}
       <main className="main-content">
         {/* Left Pane: Code Editor */}
         <div className="editor-pane">
-          <div className="pane-header">
-            <span>script.js</span>
-          </div>
+          <div className="pane-header"><span>script.js</span></div>
           <Editor
             height="calc(100% - 35px)"
             defaultLanguage="javascript"
@@ -53,33 +48,27 @@ function App() {
               minimap: { enabled: false },
               lineNumbers: 'on',
               scrollBeyondLastLine: false,
-              fontFamily: '"Fira Code", monospace',
+              fontFamily: '"JetBrains Mono", monospace',
             }}
           />
         </div>
 
         {/* Right Pane: Visualizer */}
         <div className="visualizer-pane">
-          {/* Visualizer Section 1: Memory */}
           <div className="viz-section memory-section">
-            <div className="pane-header">
-              <span>Memory & Variables</span>
-            </div>
+            <div className="pane-header"><span>Memory & Variables</span></div>
             <div className="viz-content">
               <div className="empty-state">
-                <p>Click "Simulate" to begin tracing memory.</p>
+                Click "Simulate" to begin tracing memory.
               </div>
             </div>
           </div>
 
-          {/* Visualizer Section 2: Call Stack */}
           <div className="viz-section stack-section">
-            <div className="pane-header">
-              <span>Call Stack</span>
-            </div>
+            <div className="pane-header"><span>Call Stack</span></div>
             <div className="viz-content">
               <div className="empty-state">
-                <p>Function calls will appear here.</p>
+                Function calls will appear here.
               </div>
             </div>
           </div>
