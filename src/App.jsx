@@ -1,67 +1,55 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Editor from '@monaco-editor/react';
-import { Play, FastForward, RotateCcw, Microscope } from 'lucide-react';
+import { Play, FastForward, RotateCcw, Microscope, ChevronRight } from 'lucide-react';
 import { instrumentCode } from './engine/instrument';
 import './App.css';
 
 function App() {
+  // Updated default code to be simple and clear
   const [code, setCode] = useState(`let x = 5;\nlet y = x + 10;\nlet z = x + y;`);
   const [isRunning, setIsRunning] = useState(false);
+  
+  // State for our "movie" frames and which step we are on
   const [frames, setFrames] = useState([]);
-
-  // Set up the Web Worker when the app loads
-  // useEffect(() => {
-  //   // Vite handles web workers nicely with this syntax
-  //   const worker = new Worker(new URL('./simulator.worker.js', import.meta.url), { type: 'module' });
-    
-  //   worker.onmessage = (e) => {
-  //     if (e.data.type === 'finished') {
-  //       console.log("🎉 Received Execution Frames from Worker:");
-  //       console.log(e.data.frames);
-  //       setFrames(e.data.frames);
-  //       setIsRunning(false);
-  //     } else if (e.data.type === 'error') {
-  //       console.error("Worker Execution Error:", e.data.message);
-  //       setIsRunning(false);
-  //     }
-  //   };
-
-  //   // Cleanup worker on unmount
-  //   return () => worker.terminate();
-  // }, []);
+  const [currentStep, setCurrentStep] = useState(0);
 
   const handleRun = () => {
     setIsRunning(true);
     try {
-      // 1. Instrument the code
       const instrumentedCode = instrumentCode(code);
-      
-      // 2. Send to worker
-      // We need to pass the worker instance from useEffect to handleRun.
-      // Let's just create it inside handleRun for simplicity in this step!
       const worker = new Worker(new URL('./simulator.worker.js', import.meta.url), { type: 'module' });
       
       worker.onmessage = (e) => {
         if (e.data.type === 'finished') {
-          console.log("🎉 Received Execution Frames from Worker:");
-          console.log(e.data.frames);
           setFrames(e.data.frames);
+          setCurrentStep(0); // Reset to first step when starting a new simulation
         } else if (e.data.type === 'error') {
           console.error("Worker Execution Error:", e.data.message);
         }
         setIsRunning(false);
-        worker.terminate(); // Clean up worker after it finishes
+        worker.terminate();
       };
 
       worker.postMessage({ instrumentedCode });
-      
     } catch (error) {
       console.error("Parsing Error:", error);
       setIsRunning(false);
     }
   };
 
-  // ... keep the rest of your JSX exactly the same!
+  // Playback controls
+  const handleStepForward = () => {
+    if (currentStep < frames.length - 1) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const handleReset = () => {
+    setCurrentStep(0);
+  };
+
+  // Get the memory for the current step, or empty object if no frames
+  const currentMemory = frames.length > 0 ? frames[currentStep].memory : {};
 
   return (
     <div className="app-container">
@@ -71,8 +59,12 @@ function App() {
           <h1>Logic<span>Lens</span></h1>
         </div>
         <div className="controls">
-          <button className="control-btn secondary"><RotateCcw size={16} /></button>
-          <button className="control-btn secondary"><FastForward size={16} /></button>
+          <button onClick={handleReset} disabled={frames.length === 0} className="control-btn secondary">
+            <RotateCcw size={16} />
+          </button>
+          <button onClick={handleStepForward} disabled={currentStep >= frames.length - 1} className="control-btn secondary">
+            <ChevronRight size={16} />
+          </button>
           <button onClick={handleRun} disabled={isRunning} className="control-btn primary">
             <Play size={16} fill="currentColor" />
             {isRunning ? 'Simulating...' : 'Simulate'}
@@ -103,20 +95,32 @@ function App() {
         {/* Right Pane: Visualizer */}
         <div className="visualizer-pane">
           <div className="viz-section memory-section">
-            <div className="pane-header"><span>Memory & Variables</span></div>
+            <div className="pane-header">
+              <span>Memory & Variables</span>
+              {frames.length > 0 && (
+                <span className="step-indicator">Step {currentStep + 1} / {frames.length}</span>
+              )}
+            </div>
             <div className="viz-content">
-              <div className="empty-state">
-                Click "Simulate" to begin tracing memory.
-              </div>
+              {frames.length === 0 ? (
+                <div className="empty-state">Click "Simulate" to begin tracing memory.</div>
+              ) : (
+                <div className="memory-grid">
+                  {Object.entries(currentMemory).map(([name, value]) => (
+                    <div key={name} className="var-box">
+                      <span className="var-name">{name}</span>
+                      <span className="var-value">{JSON.stringify(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           <div className="viz-section stack-section">
             <div className="pane-header"><span>Call Stack</span></div>
             <div className="viz-content">
-              <div className="empty-state">
-                Function calls will appear here.
-              </div>
+              <div className="empty-state">Function calls will appear here.</div>
             </div>
           </div>
         </div>
