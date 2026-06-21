@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { Play, FastForward, RotateCcw, Microscope } from 'lucide-react';
 import './App.css';
+import { instrumentCode } from './engine/instrument';
 
 function App() {
   const [code, setCode] = useState(`let arr = [10, 20, 30];
@@ -12,8 +13,21 @@ for (let i = 0; i < arr.length; i++) {
 
   const handleRun = () => {
     setIsRunning(true);
-    console.log("Code to simulate:", code);
-    setTimeout(() => setIsRunning(false), 500);
+  
+    try {
+    // 1. Pass the code through our Babel engine
+      const instrumentedCode = instrumentCode(code);
+    
+    // 2. For now, just log it to prove it worked!
+      console.log("--- Original Code ---");
+      console.log(code);
+      console.log("--- Instrumented Code (What the simulator will actually run) ---");
+      console.log(instrumentedCode);
+    } catch (error) {
+      console.error("Parsing Error:", error);
+    }
+  
+    setIsRunning(false);
   };
 
   return (
