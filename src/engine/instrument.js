@@ -18,19 +18,34 @@ export function instrumentCode(sourceCode) {
         const varName = path.node.id.name;
         const line = path.node.loc.start.line;
         
-        // Use typeof check to prevent ReferenceError if variable is block-scoped
         const traceCall = parse(`typeof ${varName} !== 'undefined' && __traceVariable("${varName}", ${varName}, ${line});`).program.body[0];
         path.getStatementParent().insertAfter(traceCall);
       }
     },
-    // 2. Track updates (i = i + 1, sum += 5)
+    // 2. Track updates
     AssignmentExpression(path) {
+      const line = path.node.loc.start.line;
+      
+      // Case A: Normal variable update (x = 5)
       if (path.node.left.type === 'Identifier') {
         const varName = path.node.left.name;
-        const line = path.node.loc.start.line;
-        
         const traceCall = parse(`typeof ${varName} !== 'undefined' && __traceVariable("${varName}", ${varName}, ${line});`).program.body[0];
         path.getStatementParent().insertAfter(traceCall);
+      } 
+      // Case B: Array or Object mutation (arr[0] = 5 or obj.prop = 5)
+      else if (path.node.left.type === 'MemberExpression') {
+        // We need to get the root object name (e.g., from arr[0][1], get "arr")
+        let rootObj = path.node.left.object;
+        while (rootObj.object) {
+          rootObj = rootObj.object;
+        }
+        
+        if (rootObj.type === 'Identifier') {
+          const varName = rootObj.name;
+          // We trace the whole object again so we can see the updated state
+          const traceCall = parse(`typeof ${varName} !== 'undefined' && __traceVariable("${varName}", ${varName}, ${line});`).program.body[0];
+          path.getStatementParent().insertAfter(traceCall);
+        }
       }
     },
     // 3. Track increments (i++)

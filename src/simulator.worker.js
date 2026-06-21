@@ -1,13 +1,13 @@
 let executionFrames = [];
 let currentMemory = {};
 
-// Updated to accept the 'line' parameter
 self.__traceVariable = (name, value, line) => {
   currentMemory[name] = value;
   
+  // DEEP CLONE the memory so arrays/objects don't mutate past frames!
   executionFrames.push({
-    memory: { ...currentMemory },
-    line: line // Save the line number!
+    memory: structuredClone(currentMemory),
+    line: line
   });
 };
 

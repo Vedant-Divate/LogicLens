@@ -136,12 +136,49 @@ for (let i = 0; i < arr.length; i++) {
                 <div className="empty-state">Click "Simulate" to begin tracing memory.</div>
               ) : (
                 <div className="memory-grid">
-                  {Object.entries(currentMemory).map(([name, value]) => (
-                    <div key={name} className="var-box">
-                      <span className="var-name">{name}</span>
-                      <span className="var-value">{JSON.stringify(value)}</span>
-                    </div>
-                  ))}
+                  {Object.entries(currentMemory).map(([name, value]) => {
+                  // If it's an Array, render it as an indexed list
+                    if (Array.isArray(value)) {
+                      return (
+                        <div key={name} className="memory-item array-container">
+                          <div className="var-label">{name}</div>
+                          <div className="array-box">
+                            {value.map((item, index) => (
+                              <div key={index} className="array-item">
+                                <span className="array-index">{index}</span>
+                                <span className="array-value">{JSON.stringify(item)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+    
+                    // If it's an Object, render it as key-value pairs
+                    if (typeof value === 'object' && value !== null) {
+                      return (
+                        <div key={name} className="memory-item object-container">
+                          <div className="var-label">{name}</div>
+                          <div className="object-box">
+                            {Object.entries(value).map(([key, val]) => (
+                              <div key={key} className="object-property">
+                                <span className="prop-key">{key}:</span>
+                                <span className="prop-value">{JSON.stringify(val)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // If it's a primitive (number, string, boolean)
+                    return (
+                      <div key={name} className="memory-item var-box">
+                        <span className="var-name">{name}</span>
+                        <span className="var-value">{JSON.stringify(value)}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
