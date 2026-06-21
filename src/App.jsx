@@ -1,34 +1,67 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { Play, FastForward, RotateCcw, Microscope } from 'lucide-react';
-import './App.css';
 import { instrumentCode } from './engine/instrument';
+import './App.css';
 
 function App() {
-  const [code, setCode] = useState(`let arr = [10, 20, 30];
-for (let i = 0; i < arr.length; i++) {
-  let sum = arr[i] + 5;
-}`);
+  const [code, setCode] = useState(`let x = 5;\nlet y = x + 10;\nlet z = x + y;`);
   const [isRunning, setIsRunning] = useState(false);
+  const [frames, setFrames] = useState([]);
+
+  // Set up the Web Worker when the app loads
+  // useEffect(() => {
+  //   // Vite handles web workers nicely with this syntax
+  //   const worker = new Worker(new URL('./simulator.worker.js', import.meta.url), { type: 'module' });
+    
+  //   worker.onmessage = (e) => {
+  //     if (e.data.type === 'finished') {
+  //       console.log("🎉 Received Execution Frames from Worker:");
+  //       console.log(e.data.frames);
+  //       setFrames(e.data.frames);
+  //       setIsRunning(false);
+  //     } else if (e.data.type === 'error') {
+  //       console.error("Worker Execution Error:", e.data.message);
+  //       setIsRunning(false);
+  //     }
+  //   };
+
+  //   // Cleanup worker on unmount
+  //   return () => worker.terminate();
+  // }, []);
 
   const handleRun = () => {
     setIsRunning(true);
-  
     try {
-    // 1. Pass the code through our Babel engine
+      // 1. Instrument the code
       const instrumentedCode = instrumentCode(code);
-    
-    // 2. For now, just log it to prove it worked!
-      console.log("--- Original Code ---");
-      console.log(code);
-      console.log("--- Instrumented Code (What the simulator will actually run) ---");
-      console.log(instrumentedCode);
+      
+      // 2. Send to worker
+      // We need to pass the worker instance from useEffect to handleRun.
+      // Let's just create it inside handleRun for simplicity in this step!
+      const worker = new Worker(new URL('./simulator.worker.js', import.meta.url), { type: 'module' });
+      
+      worker.onmessage = (e) => {
+        if (e.data.type === 'finished') {
+          console.log("🎉 Received Execution Frames from Worker:");
+          console.log(e.data.frames);
+          setFrames(e.data.frames);
+        } else if (e.data.type === 'error') {
+          console.error("Worker Execution Error:", e.data.message);
+        }
+        setIsRunning(false);
+        worker.terminate(); // Clean up worker after it finishes
+      };
+
+      worker.postMessage({ instrumentedCode });
+      
     } catch (error) {
       console.error("Parsing Error:", error);
+      setIsRunning(false);
     }
-  
-    setIsRunning(false);
   };
+
+  // ... keep the rest of your JSX exactly the same!
 
   return (
     <div className="app-container">
