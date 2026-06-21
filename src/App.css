@@ -205,3 +205,16 @@
   color: #e6edf3;
   font-family: 'JetBrains Mono', monospace;
 }
+
+/* Monaco Editor Line Highlight */
+.line-highlight {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-left: 3px solid #58a6ff !important;
+}
+
+.line-glyph {
+  background: #58a6ff !important;
+  width: 5px !important;
+  margin-left: 3px;
+  border-radius: 2px;
+}

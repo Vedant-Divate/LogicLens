@@ -1,17 +1,48 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { Play, FastForward, RotateCcw, Microscope, ChevronRight } from 'lucide-react';
 import { instrumentCode } from './engine/instrument';
 import './App.css';
 
 function App() {
-  // Updated default code to be simple and clear
-  const [code, setCode] = useState(`let x = 5;\nlet y = x + 10;\nlet z = x + y;`);
+  const [code, setCode] = useState(`let arr = [10, 20, 30];
+let sum = 0;
+for (let i = 0; i < arr.length; i++) {
+  sum = sum + arr[i];
+}`);
   const [isRunning, setIsRunning] = useState(false);
-  
-  // State for our "movie" frames and which step we are on
   const [frames, setFrames] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
+
+  // Refs for Monaco Editor to control line highlighting
+  const editorRef = useRef(null);
+  const decorationsRef = useRef([]);
+
+  const handleEditorDidMount = (editor, monaco) => {
+    editorRef.current = editor;
+  };
+
+  // This effect runs whenever the user steps forward/backward
+  useEffect(() => {
+    if (editorRef.current && frames.length > 0) {
+      const currentLine = frames[currentStep].line;
+      
+      // Clear old highlight, add new one
+      decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, [
+        {
+          range: { startLineNumber: currentLine, endLineNumber: currentLine, startColumn: 1, endColumn: 1 },
+          options: {
+            isWholeLine: true,
+            className: 'line-highlight', // We will style this in CSS
+            glyphClass: 'line-glyph'     // A little arrow in the margin
+          }
+        }
+      ]);
+      
+      // Scroll to the line if it's off-screen
+      editorRef.current.revealLineInCenter(currentLine);
+    }
+  }, [currentStep, frames]);
 
   const handleRun = () => {
     setIsRunning(true);
@@ -22,9 +53,9 @@ function App() {
       worker.onmessage = (e) => {
         if (e.data.type === 'finished') {
           setFrames(e.data.frames);
-          setCurrentStep(0); // Reset to first step when starting a new simulation
+          setCurrentStep(0);
         } else if (e.data.type === 'error') {
-          console.error("Worker Execution Error:", e.data.message);
+          console.error("Worker Error:", e.data.message);
         }
         setIsRunning(false);
         worker.terminate();
@@ -37,18 +68,18 @@ function App() {
     }
   };
 
-  // Playback controls
   const handleStepForward = () => {
-    if (currentStep < frames.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    }
+    if (currentStep < frames.length - 1) setCurrentStep(prev => prev + 1);
   };
 
   const handleReset = () => {
     setCurrentStep(0);
+    // Clear decorations on reset
+    if (editorRef.current) {
+      decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
+    }
   };
 
-  // Get the memory for the current step, or empty object if no frames
   const currentMemory = frames.length > 0 ? frames[currentStep].memory : {};
 
   return (
@@ -73,7 +104,6 @@ function App() {
       </header>
 
       <main className="main-content">
-        {/* Left Pane: Code Editor */}
         <div className="editor-pane">
           <div className="pane-header"><span>script.js</span></div>
           <Editor
@@ -81,6 +111,7 @@ function App() {
             defaultLanguage="javascript"
             value={code}
             onChange={(value) => setCode(value)}
+            onMount={handleEditorDidMount}
             theme="vs-dark"
             options={{
               fontSize: 14,
@@ -92,7 +123,6 @@ function App() {
           />
         </div>
 
-        {/* Right Pane: Visualizer */}
         <div className="visualizer-pane">
           <div className="viz-section memory-section">
             <div className="pane-header">
