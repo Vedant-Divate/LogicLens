@@ -81,6 +81,7 @@ for (let i = 0; i < arr.length; i++) {
   };
 
   const currentMemory = frames.length > 0 ? frames[currentStep].memory : {};
+  const currentStack = frames.length > 0 ? frames[currentStep].stack : [];
 
   return (
     <div className="app-container">
@@ -187,7 +188,17 @@ for (let i = 0; i < arr.length; i++) {
           <div className="viz-section stack-section">
             <div className="pane-header"><span>Call Stack</span></div>
             <div className="viz-content">
-              <div className="empty-state">Function calls will appear here.</div>
+              {currentStack.length === 0 ? (
+                <div className="empty-state">No active functions.</div>
+              ) : (
+                <div className="stack-container">
+                  {currentStack.map((func, index) => (
+                    <div key={index} className="stack-frame">
+                      {func}()
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

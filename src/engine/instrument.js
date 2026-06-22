@@ -12,12 +12,11 @@ export function instrumentCode(sourceCode) {
   });
 
   traverse(ast, {
-    // 1. Track initial declarations (let x = 5)
+    // 1. Track initial declarations
     VariableDeclarator(path) {
       if (path.node.id.type === 'Identifier') {
         const varName = path.node.id.name;
         const line = path.node.loc.start.line;
-        
         const traceCall = parse(`typeof ${varName} !== 'undefined' && __traceVariable("${varName}", ${varName}, ${line});`).program.body[0];
         path.getStatementParent().insertAfter(traceCall);
       }
@@ -25,38 +24,45 @@ export function instrumentCode(sourceCode) {
     // 2. Track updates
     AssignmentExpression(path) {
       const line = path.node.loc.start.line;
-      
-      // Case A: Normal variable update (x = 5)
       if (path.node.left.type === 'Identifier') {
         const varName = path.node.left.name;
         const traceCall = parse(`typeof ${varName} !== 'undefined' && __traceVariable("${varName}", ${varName}, ${line});`).program.body[0];
         path.getStatementParent().insertAfter(traceCall);
-      } 
-      // Case B: Array or Object mutation (arr[0] = 5 or obj.prop = 5)
-      else if (path.node.left.type === 'MemberExpression') {
-        // We need to get the root object name (e.g., from arr[0][1], get "arr")
+      } else if (path.node.left.type === 'MemberExpression') {
         let rootObj = path.node.left.object;
-        while (rootObj.object) {
-          rootObj = rootObj.object;
-        }
-        
+        while (rootObj.object) rootObj = rootObj.object;
         if (rootObj.type === 'Identifier') {
           const varName = rootObj.name;
-          // We trace the whole object again so we can see the updated state
           const traceCall = parse(`typeof ${varName} !== 'undefined' && __traceVariable("${varName}", ${varName}, ${line});`).program.body[0];
           path.getStatementParent().insertAfter(traceCall);
         }
       }
     },
-    // 3. Track increments (i++)
+    // 3. Track increments
     UpdateExpression(path) {
       if (path.node.argument.type === 'Identifier') {
         const varName = path.node.argument.name;
         const line = path.node.loc.start.line;
-        
         const traceCall = parse(`typeof ${varName} !== 'undefined' && __traceVariable("${varName}", ${varName}, ${line});`).program.body[0];
         path.getStatementParent().insertAfter(traceCall);
       }
+    },
+    // 4. NEW: Track Function Calls
+    FunctionDeclaration(path) {
+      const funcName = path.node.id.name;
+      const line = path.node.loc.start.line;
+      // Inject at the very beginning of the function body
+      path.node.body.body.unshift(
+        parse(`__pushStack("${funcName}", ${line});`).program.body[0]
+      );
+    },
+    // 5. NEW: Track Function Returns
+    ReturnStatement(path) {
+      const line = path.node.loc.start.line;
+      // Inject right before the return happens
+      path.insertBefore(
+        parse(`__popStack(${line});`).program.body[0]
+      );
     }
   });
 

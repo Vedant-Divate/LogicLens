@@ -30,3 +30,22 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #484f58;
 }
+
+/* Call Stack Styling */
+.stack-container {
+  display: flex;
+  flex-direction: column-reverse; /* Newest frame at the top */
+  gap: 8px;
+}
+
+.stack-frame {
+  background-color: #161b22;
+  border: 1px solid #f0883e;
+  border-left: 4px solid #f0883e;
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: #e6edf3;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
