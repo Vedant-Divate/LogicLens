@@ -194,9 +194,16 @@ for (let i = 0; i < arr.length; i++) {
                 <div className="stack-container">
                   {currentStack.map((func, index) => (
                     <div key={index} className="stack-frame">
-                      {func}()
+            {func}()
                     </div>
                   ))}
+                </div>
+              )}
+    
+              {/* NEW: Event Log */}
+              {frames.length > 0 && frames[currentStep].event && (
+                <div className="event-log">
+                  {frames[currentStep].event}
                 </div>
               )}
             </div>

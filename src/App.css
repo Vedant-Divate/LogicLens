@@ -292,3 +292,22 @@
 .prop-value {
   color: #c9d1d9;
 }
+
+/* Event Log Styling */
+.event-log {
+  margin-top: 16px;
+  padding: 10px 14px;
+  background-color: rgba(88, 166, 255, 0.1);
+  border: 1px solid #58a6ff;
+  border-radius: 6px;
+  color: #58a6ff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

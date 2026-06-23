@@ -1,33 +1,35 @@
 let executionFrames = [];
 let currentMemory = {};
-let callStack = []; // NEW: Track active function calls
+let callStack = []; 
 
 self.__traceVariable = (name, value, line) => {
   currentMemory[name] = value;
   executionFrames.push({
     memory: structuredClone(currentMemory),
-    stack: [...callStack], // Save a copy of the stack with every variable update!
-    line: line
+    stack: [...callStack],
+    line: line,
+    event: null
   });
 };
 
-// NEW: When a function starts
 self.__pushStack = (funcName, line) => {
   callStack.push(funcName);
   executionFrames.push({
     memory: structuredClone(currentMemory),
     stack: [...callStack],
-    line: line
+    line: line,
+    event: `Called ${funcName}()` // Log the call
   });
 };
 
-// NEW: When a function ends
-self.__popStack = (line) => {
-  callStack.pop();
+// Updated to accept returnValue
+self.__popStack = (returnValue, line) => {
+  const poppedName = callStack.pop() || "global";
   executionFrames.push({
     memory: structuredClone(currentMemory),
     stack: [...callStack],
-    line: line
+    line: line,
+    event: `${poppedName}() returned ${JSON.stringify(returnValue)}` // Log the return!
   });
 };
 
@@ -35,7 +37,7 @@ self.onmessage = function(e) {
   const { instrumentedCode } = e.data;
   executionFrames = [];
   currentMemory = {};
-  callStack = []; // Reset stack
+  callStack = [];
 
   try {
     eval(instrumentedCode);

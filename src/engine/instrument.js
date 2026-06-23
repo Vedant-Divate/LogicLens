@@ -57,12 +57,33 @@ export function instrumentCode(sourceCode) {
       );
     },
     // 5. NEW: Track Function Returns
+    
     ReturnStatement(path) {
+      // If it's an empty return (return;), just pop
+      if (!path.node.argument) {
+        const line = path.node.loc.start.line;
+        path.insertBefore(
+          parse(`__popStack(undefined, ${line});`).program.body[0]
+        );
+        return;
+      }
+
+      // Prevent infinite loops from our own injected code
+      if (path.node.__instrumented) return;
+      path.node.__instrumented = true;
+
       const line = path.node.loc.start.line;
-      // Inject right before the return happens
-      path.insertBefore(
-        parse(`__popStack(${line});`).program.body[0]
-      );
+      // Generate a unique variable name like "_retVal"
+      const tempName = path.scope.generateUid("retVal");
+      
+      // Transform: return X;
+      // Into: let _retVal = X; __popStack(_retVal, line); return _retVal;
+      const newNodes = parse(`let ${tempName} = 0; __popStack(${tempName}, ${line}); return ${tempName};`).program.body;
+      
+      // Replace the '0' with the actual return expression
+      newNodes[0].declarations[0].init = path.node.argument;
+      
+      path.replaceWithMultiple(newNodes);
     }
   });
 
