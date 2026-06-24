@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 import { Play, FastForward, RotateCcw, Microscope, ChevronRight } from 'lucide-react';
 import { instrumentCode } from './engine/instrument';
 import './App.css';
+import { Play, FastForward, RotateCcw, Microscope, ChevronRight, ChevronLeft } from 'lucide-react';
 
 function App() {
   const [code, setCode] = useState(`let arr = [10, 20, 30];
@@ -68,8 +69,13 @@ for (let i = 0; i < arr.length; i++) {
     }
   };
 
-  const handleStepForward = () => {
+    const handleStepForward = () => {
     if (currentStep < frames.length - 1) setCurrentStep(prev => prev + 1);
+  };
+
+  // NEW: Step Backward function
+  const handleStepBackward = () => {
+    if (currentStep > 0) setCurrentStep(prev => prev - 1);
   };
 
   const handleReset = () => {
@@ -93,6 +99,10 @@ for (let i = 0; i < arr.length; i++) {
         <div className="controls">
           <button onClick={handleReset} disabled={frames.length === 0} className="control-btn secondary">
             <RotateCcw size={16} />
+          </button>
+          {/* NEW: Step Backward Button */}
+          <button onClick={handleStepBackward} disabled={currentStep === 0} className="control-btn secondary">
+            <ChevronLeft size={16} />
           </button>
           <button onClick={handleStepForward} disabled={currentStep >= frames.length - 1} className="control-btn secondary">
             <ChevronRight size={16} />
