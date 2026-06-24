@@ -47,17 +47,28 @@ export function instrumentCode(sourceCode) {
         path.getStatementParent().insertAfter(traceCall);
       }
     },
-    // 4. NEW: Track Function Calls
+        // 4. Track Function Calls
     FunctionDeclaration(path) {
       const funcName = path.node.id.name;
       const line = path.node.loc.start.line;
+      
+      // NEW: Grab the parameter names (e.g., ["n"])
+      const paramNames = path.node.params
+        .filter(p => p.type === 'Identifier')
+        .map(p => p.name);
+      
+      // Create an array string to pass the values at runtime, e.g., [n]
+      const argsArrayString = `[${paramNames.join(', ')}]`;
+      
       // Inject at the very beginning of the function body
       path.node.body.body.unshift(
-        parse(`__pushStack("${funcName}", ${line});`).program.body[0]
+        parse(`__pushStack("${funcName}", ${argsArrayString}, ${line});`).program.body[0]
       );
     },
     // 5. NEW: Track Function Returns
     
+        // 5. Track Function Returns
+        // 5. Track Function Returns
     ReturnStatement(path) {
       // If it's an empty return (return;), just pop
       if (!path.node.argument) {
@@ -70,18 +81,23 @@ export function instrumentCode(sourceCode) {
 
       // Prevent infinite loops from our own injected code
       if (path.node.__instrumented) return;
-      path.node.__instrumented = true;
 
       const line = path.node.loc.start.line;
-      // Generate a unique variable name like "_retVal"
       const tempName = path.scope.generateUid("retVal");
       
-      // Transform: return X;
-      // Into: let _retVal = X; __popStack(_retVal, line); return _retVal;
-      const newNodes = parse(`let ${tempName} = 0; __popStack(${tempName}, ${line}); return ${tempName};`).program.body;
+      const newNodes = parse(
+        `let ${tempName} = 0; __popStack(${tempName}, ${line}); return ${tempName};`,
+        { allowReturnOutsideFunction: true }
+      ).program.body;
       
       // Replace the '0' with the actual return expression
       newNodes[0].declarations[0].init = path.node.argument;
+      
+      // CRITICAL FIX: Mark the newly generated return statement so Babel ignores it!
+      const newReturnNode = newNodes[2]; // Index 0 is let, 1 is __popStack, 2 is return
+      if (newReturnNode) {
+        newReturnNode.__instrumented = true;
+      }
       
       path.replaceWithMultiple(newNodes);
     }

@@ -12,24 +12,29 @@ self.__traceVariable = (name, value, line) => {
   });
 };
 
-self.__pushStack = (funcName, line) => {
-  callStack.push(funcName);
+// Updated to accept args
+self.__pushStack = (funcName, args, line) => {
+  callStack.push({ name: funcName, args: args });
+  const argsString = args.map(a => JSON.stringify(a)).join(', ');
+  
   executionFrames.push({
     memory: structuredClone(currentMemory),
     stack: [...callStack],
     line: line,
-    event: `Called ${funcName}()` // Log the call
+    event: `Called ${funcName}(${argsString})` // Log the call with args
   });
 };
 
-// Updated to accept returnValue
+// Updated to format the return event with the original call signature
 self.__popStack = (returnValue, line) => {
-  const poppedName = callStack.pop() || "global";
+  const popped = callStack.pop() || { name: "global", args: [] };
+  const argsString = popped.args.map(a => JSON.stringify(a)).join(', ');
+  
   executionFrames.push({
     memory: structuredClone(currentMemory),
     stack: [...callStack],
     line: line,
-    event: `${poppedName}() returned ${JSON.stringify(returnValue)}` // Log the return!
+    event: `${popped.name}(${argsString}) returned ${JSON.stringify(returnValue)}` // Log the return with args!
   });
 };
 

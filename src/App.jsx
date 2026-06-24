@@ -194,7 +194,7 @@ for (let i = 0; i < arr.length; i++) {
                 <div className="stack-container">
                   {currentStack.map((func, index) => (
                     <div key={index} className="stack-frame">
-            {func}()
+                      {func.name}({func.args.map(a => JSON.stringify(a)).join(', ')})
                     </div>
                   ))}
                 </div>
