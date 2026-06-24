@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
-import { Play, FastForward, RotateCcw, Microscope, ChevronRight } from 'lucide-react';
 import { instrumentCode } from './engine/instrument';
 import './App.css';
-import { Play, FastForward, RotateCcw, Microscope, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Play, RotateCcw, Microscope, ChevronRight, ChevronLeft } from 'lucide-react';
 
 function App() {
   const [code, setCode] = useState(`let arr = [10, 20, 30];
