@@ -127,37 +127,34 @@ for (let i = 0; i < arr.length; i++) {
           <Microscope size={24} className="logo-icon" />
           <h1>Logic<span>Lens</span></h1>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '10px' }}>
-          <span style={{ fontSize: '12px', color: '#8b949e' }}>Speed</span>
-          <input 
-            type="range" 
-            min="100" 
-            max="1500" 
-            value={speed} 
-            onChange={(e) => setSpeed(Number(e.target.value))} 
-            disabled={frames.length === 0}
-          />
-        </div>
+  
         <div className="controls">
-          {/* 1. Simulate Button (Generates the frames) */}
+          {/* 1. Simulate Button */}
           <button onClick={handleRun} disabled={isRunning} className="control-btn primary" title="Run Simulation">
             {isRunning ? 'Simulating...' : 'Simulate'}
           </button>
 
-          <div style={{ width: '1px', height: '24px', background: '#30363d', margin: '0 8px' }}></div> {/* Divider */}
+          <div style={{ width: '1px', height: '24px', background: '#30363d', margin: '0 8px' }}></div>
 
-          {/* 2. Speed Slider */}
+          {/* 2. Speed Slider with Text (0.5x to 2.0x) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '12px', color: '#8b949e' }}>Speed</span>
+            <span style={{ fontSize: '12px', color: '#8b949e', minWidth: '40px', textAlign: 'right' }}>
+              {(800 / speed).toFixed(2)}x
+            </span>
             <input 
               type="range" 
-              min="100" 
-              max="1500" 
-              value={speed} 
-              onChange={(e) => setSpeed(Number(e.target.value))} 
+              min="400" 
+              max="1600" 
+              // Reversed logic: slider value + speed = 2000. 
+              // So if slider is 1600 (far right), speed is 400ms (2.0x fast)
+              // If slider is 400 (far left), speed is 1600ms (0.50x slow)
+              value={2000 - speed} 
+              onChange={(e) => setSpeed(2000 - Number(e.target.value))} 
               disabled={frames.length === 0}
             />
           </div>
+
+          <div style={{ width: '1px', height: '24px', background: '#30363d', margin: '0 8px' }}></div>
 
           {/* 3. Playback Controls */}
           <button onClick={handleReset} disabled={frames.length === 0} className="control-btn secondary" title="Reset">
