@@ -1,15 +1,14 @@
 let executionFrames = [];
 let currentMemory = {};
 let callStack = [];
-let consoleLogs = []; // NEW: Track console logs
+let consoleLogs = [];
 
-// Intercept console.log!
+// Intercept console.log inside the worker!
 const originalLog = console.log;
 console.log = (...args) => {
-  // Convert objects/arrays to strings so they render nicely
   const logString = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
   consoleLogs.push(logString);
-  originalLog(...args); // Still print to browser dev tools just in case
+  originalLog.apply(console, args); // Still print to browser dev tools
 };
 
 self.__traceVariable = (name, value, line) => {
@@ -19,7 +18,7 @@ self.__traceVariable = (name, value, line) => {
     stack: [...callStack],
     line: line,
     event: null,
-    logs: [...consoleLogs] // Save current logs with the frame
+    logs: [...consoleLogs]
   });
 };
 
@@ -47,23 +46,36 @@ self.__popStack = (returnValue, line) => {
   });
 };
 
+// NEW: Dedicated hook for console.log to create an immediate step
+self.__traceLog = (line, ...args) => {
+  const logString = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+  consoleLogs.push(logString);
+  
+  executionFrames.push({
+    memory: structuredClone(currentMemory),
+    stack: [...callStack],
+    line: line,
+    event: null,
+    logs: [...consoleLogs]
+  });
+};
+
 self.onmessage = function(e) {
   const { instrumentedCode } = e.data;
   executionFrames = [];
   currentMemory = {};
   callStack = [];
-  consoleLogs = []; // Reset logs
+  consoleLogs = [];
 
   try {
     eval(instrumentedCode);
     self.postMessage({ type: 'finished', frames: executionFrames });
   } catch (error) {
-    // NEW: Send errors back as a special frame so they show in the console UI
     consoleLogs.push(`⚠️ Error: ${error.message}`);
     executionFrames.push({
       memory: structuredClone(currentMemory),
       stack: [...callStack],
-      line: 0, // Unknown line for runtime error
+      line: 0,
       event: 'Execution Halted',
       logs: [...consoleLogs]
     });

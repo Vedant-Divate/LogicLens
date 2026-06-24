@@ -66,9 +66,6 @@ export function instrumentCode(sourceCode) {
       );
     },
     // 5. NEW: Track Function Returns
-    
-        // 5. Track Function Returns
-        // 5. Track Function Returns
     ReturnStatement(path) {
       // If it's an empty return (return;), just pop
       if (!path.node.argument) {
@@ -78,6 +75,7 @@ export function instrumentCode(sourceCode) {
         );
         return;
       }
+
 
       // Prevent infinite loops from our own injected code
       if (path.node.__instrumented) return;
@@ -100,6 +98,26 @@ export function instrumentCode(sourceCode) {
       }
       
       path.replaceWithMultiple(newNodes);
+    },
+    
+    // 6. NEW: Intercept console.log to create an immediate frame
+    CallExpression(path) {
+      const callee = path.node.callee;
+      // Check if it's console.log
+      if (
+        callee.type === 'MemberExpression' &&
+        callee.object.name === 'console' &&
+        callee.property.name === 'log'
+      ) {
+        const line = path.node.loc.start.line;
+        // Get the arguments passed to console.log
+        const args = path.node.arguments;
+        
+        // Replace console.log(arg1, arg2) with __traceLog(line, arg1, arg2)
+        path.replaceWith(
+          parse(`__traceLog(${line}, ${generate({ type: 'SequenceExpression', expressions: args }).code})`).program.body[0].expression
+        );
+      }
     }
   });
 
