@@ -15,6 +15,7 @@ for (let i = 0; i < arr.length; i++) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false); // NEW: Auto-play state
   const [speed, setSpeed] = useState(800);
+  const currentLogs = frames.length > 0 ? frames[currentStep].logs : [];
 
   // NEW: Auto-play effect
   useEffect(() => {
@@ -119,6 +120,7 @@ for (let i = 0; i < arr.length; i++) {
 
   const currentMemory = frames.length > 0 ? frames[currentStep].memory : {};
   const currentStack = frames.length > 0 ? frames[currentStep].stack : [];
+  const currentEvent = frames.length > 0 ? frames[currentStep].event : null; // ADD THIS LINE
 
   return (
     <div className="app-container">
@@ -193,6 +195,7 @@ for (let i = 0; i < arr.length; i++) {
         </div>
 
         <div className="visualizer-pane">
+          {/* Top Right: Memory & Variables (Takes 50% height) */}
           <div className="viz-section memory-section">
             <div className="pane-header">
               <span>Memory & Variables</span>
@@ -206,7 +209,6 @@ for (let i = 0; i < arr.length; i++) {
               ) : (
                 <div className="memory-grid">
                   {Object.entries(currentMemory).map(([name, value]) => {
-                  // If it's an Array, render it as an indexed list
                     if (Array.isArray(value)) {
                       return (
                         <div key={name} className="memory-item array-container">
@@ -222,8 +224,6 @@ for (let i = 0; i < arr.length; i++) {
                         </div>
                       );
                     }
-    
-                    // If it's an Object, render it as key-value pairs
                     if (typeof value === 'object' && value !== null) {
                       return (
                         <div key={name} className="memory-item object-container">
@@ -239,8 +239,6 @@ for (let i = 0; i < arr.length; i++) {
                         </div>
                       );
                     }
-
-                    // If it's a primitive (number, string, boolean)
                     return (
                       <div key={name} className="memory-item var-box">
                         <span className="var-name">{name}</span>
@@ -253,7 +251,8 @@ for (let i = 0; i < arr.length; i++) {
             </div>
           </div>
 
-          <div className="viz-section stack-section">
+          {/* Middle Right: Call Stack (Takes 30% height) */}
+          <div className="viz-section stack-section" style={{ height: '30%', borderBottom: '1px solid #30363d' }}>
             <div className="pane-header"><span>Call Stack</span></div>
             <div className="viz-content">
               {currentStack.length === 0 ? (
@@ -267,12 +266,29 @@ for (let i = 0; i < arr.length; i++) {
                   ))}
                 </div>
               )}
-    
-              {/* NEW: Event Log */}
-              {frames.length > 0 && frames[currentStep].event && (
+              {currentEvent && (
                 <div className="event-log">
-                  {frames[currentStep].event}
+                  {currentEvent}
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Right: Console Output (Takes 20% height) */}
+          <div className="viz-section console-section" style={{ height: '20%' }}>
+            <div className="pane-header">
+              <span>Console</span>
+              {/* Optional: Add a clear button later */}
+            </div>
+            <div className="viz-content console-content">
+              {currentLogs.length === 0 ? (
+                <div className="empty-state">No output.</div>
+              ) : (
+                currentLogs.map((log, index) => (
+                  <div key={index} className={`console-line ${log.includes('⚠️') ? 'error-log' : ''}`}>
+                    <span className="console-arrow">›</span> {log}
+                  </div>
+                ))
               )}
             </div>
           </div>

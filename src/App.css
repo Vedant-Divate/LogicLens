@@ -311,3 +311,27 @@
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Console Styling */
+.console-content {
+  padding: 8px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.console-line {
+  color: #c9d1d9;
+  word-break: break-all;
+}
+
+.console-arrow {
+  color: #58a6ff;
+  margin-right: 6px;
+}
+
+.error-log {
+  color: #ff7b72;
+}
