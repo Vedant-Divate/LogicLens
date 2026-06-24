@@ -133,18 +133,35 @@
 .viz-section {
   display: flex;
   flex-direction: column;
-  height: 50%;
   border-bottom: 1px solid #30363d;
+  overflow: hidden;
 }
 
-.viz-section:last-child {
+/* Memory and Stack will grow automatically to fill empty space */
+.memory-section {
+  flex: 3; /* Takes up more room */
+  min-height: 150px; /* Prevents squishing too small */
+}
+
+.stack-section {
+  flex: 2; /* Takes up less room */
+  min-height: 100px;
+}
+
+/* Console is fixed height when open, and tiny when minimized */
+.console-section {
+  flex: 0 0 30%; /* Fixed at 30% height when open */
+}
+
+.console-section.minimized {
+  flex: 0 0 35px; /* Shrinks to just the header size */
   border-bottom: none;
 }
 
 .viz-content {
   flex: 1;
   padding: 16px;
-  overflow: auto;
+  overflow: auto; /* Internal scrolling! */
 }
 
 .empty-state {
@@ -334,4 +351,22 @@
 
 .error-log {
   color: #ff7b72;
+}
+
+/* Pane Toggle Button */
+.pane-toggle-btn {
+  background: none;
+  border: none;
+  color: #8b949e;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  margin-left: auto; /* Pushes it to the right side of the header */
+}
+
+.pane-toggle-btn:hover {
+  background-color: #30363d;
+  color: #c9d1d9;
 }

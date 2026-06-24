@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { instrumentCode } from './engine/instrument';
 import './App.css';
-import { Play, Pause, RotateCcw, Microscope, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Play, Pause, RotateCcw, Microscope, ChevronRight, ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
 
 function App() {
   const [code, setCode] = useState(`let arr = [10, 20, 30];
@@ -16,6 +16,7 @@ for (let i = 0; i < arr.length; i++) {
   const [isPlaying, setIsPlaying] = useState(false); // NEW: Auto-play state
   const [speed, setSpeed] = useState(800);
   const currentLogs = frames.length > 0 ? frames[currentStep].logs : [];
+  const [isConsoleOpen, setIsConsoleOpen] = useState(true);
 
   // NEW: Auto-play effect
   useEffect(() => {
@@ -195,7 +196,7 @@ for (let i = 0; i < arr.length; i++) {
         </div>
 
         <div className="visualizer-pane">
-          {/* Top Right: Memory & Variables (Takes 50% height) */}
+          {/* Top Right: Memory & Variables (45% height) */}
           <div className="viz-section memory-section">
             <div className="pane-header">
               <span>Memory & Variables</span>
@@ -251,8 +252,8 @@ for (let i = 0; i < arr.length; i++) {
             </div>
           </div>
 
-          {/* Middle Right: Call Stack (Takes 30% height) */}
-          <div className="viz-section stack-section" style={{ height: '30%', borderBottom: '1px solid #30363d' }}>
+          {/* Middle Right: Call Stack (25% height) */}
+          <div className="viz-section stack-section">
             <div className="pane-header"><span>Call Stack</span></div>
             <div className="viz-content">
               {currentStack.length === 0 ? (
@@ -274,23 +275,34 @@ for (let i = 0; i < arr.length; i++) {
             </div>
           </div>
 
-          {/* Bottom Right: Console Output (Takes 20% height) */}
-          <div className="viz-section console-section" style={{ height: '20%' }}>
+          {/* Bottom Right: Console Output (30% height) */}
+          {/* Bottom Right: Console Output (Collapsible) */}
+          <div className={`viz-section console-section ${isConsoleOpen ? '' : 'minimized'}`}>
             <div className="pane-header">
               <span>Console</span>
-              {/* Optional: Add a clear button later */}
+              <button 
+                onClick={() => setIsConsoleOpen(!isConsoleOpen)} 
+                className="pane-toggle-btn"
+                title={isConsoleOpen ? "Minimize Console" : "Maximize Console"}
+              >
+                {isConsoleOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+              </button>
             </div>
-            <div className="viz-content console-content">
-              {currentLogs.length === 0 ? (
-                <div className="empty-state">No output.</div>
-              ) : (
-                currentLogs.map((log, index) => (
-                  <div key={index} className={`console-line ${log.includes('⚠️') ? 'error-log' : ''}`}>
-                    <span className="console-arrow">›</span> {log}
-                  </div>
-                ))
-              )}
-            </div>
+  
+            {/* Only render the content if the console is open */}
+            {isConsoleOpen && (
+              <div className="viz-content console-content">
+                {currentLogs.length === 0 ? (
+                  <div className="empty-state">No output.</div>
+                ) : (
+                  currentLogs.map((log, index) => (
+                    <div key={index} className={`console-line ${log.includes('⚠️') ? 'error-log' : ''}`}>
+                      <span className="console-arrow">›</span> {log}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </main>
