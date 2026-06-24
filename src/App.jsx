@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { instrumentCode } from './engine/instrument';
 import './App.css';
-import { Play, RotateCcw, Microscope, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Play, Pause, RotateCcw, Microscope, ChevronRight, ChevronLeft } from 'lucide-react';
 
 function App() {
   const [code, setCode] = useState(`let arr = [10, 20, 30];
@@ -13,6 +13,27 @@ for (let i = 0; i < arr.length; i++) {
   const [isRunning, setIsRunning] = useState(false);
   const [frames, setFrames] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false); // NEW: Auto-play state
+  const [speed, setSpeed] = useState(800);
+
+  // NEW: Auto-play effect
+  useEffect(() => {
+    if (isPlaying) {
+      // If we reach the end, stop playing
+      if (currentStep >= frames.length - 1) {
+        setIsPlaying(false);
+        return;
+      }
+      
+      // Set a timer to advance to the next step
+      const timer = setTimeout(() => {
+        setCurrentStep(prev => prev + 1);
+      }, speed); // Use speed state here
+      
+      // Cleanup timer if component unmounts or step changes manually
+      return () => clearTimeout(timer);
+    }
+  }, [isPlaying, currentStep, frames]);
 
   // Refs for Monaco Editor to control line highlighting
   const editorRef = useRef(null);
@@ -85,6 +106,17 @@ for (let i = 0; i < arr.length; i++) {
     }
   };
 
+  const handlePlayPause = () => {
+    // If at the end, restart from beginning before playing
+    if (currentStep >= frames.length - 1) {
+      setCurrentStep(0);
+      // Only start playing if we aren't at the end, or if we just reset
+      if (!isPlaying) setIsPlaying(true); 
+    } else {
+      setIsPlaying(prev => !prev);
+    }
+  };
+
   const currentMemory = frames.length > 0 ? frames[currentStep].memory : {};
   const currentStack = frames.length > 0 ? frames[currentStep].stack : [];
 
@@ -95,20 +127,50 @@ for (let i = 0; i < arr.length; i++) {
           <Microscope size={24} className="logo-icon" />
           <h1>Logic<span>Lens</span></h1>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '10px' }}>
+          <span style={{ fontSize: '12px', color: '#8b949e' }}>Speed</span>
+          <input 
+            type="range" 
+            min="100" 
+            max="1500" 
+            value={speed} 
+            onChange={(e) => setSpeed(Number(e.target.value))} 
+            disabled={frames.length === 0}
+          />
+        </div>
         <div className="controls">
-          <button onClick={handleReset} disabled={frames.length === 0} className="control-btn secondary">
+          {/* 1. Simulate Button (Generates the frames) */}
+          <button onClick={handleRun} disabled={isRunning} className="control-btn primary" title="Run Simulation">
+            {isRunning ? 'Simulating...' : 'Simulate'}
+          </button>
+
+          <div style={{ width: '1px', height: '24px', background: '#30363d', margin: '0 8px' }}></div> {/* Divider */}
+
+          {/* 2. Speed Slider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '12px', color: '#8b949e' }}>Speed</span>
+            <input 
+              type="range" 
+              min="100" 
+              max="1500" 
+              value={speed} 
+              onChange={(e) => setSpeed(Number(e.target.value))} 
+              disabled={frames.length === 0}
+            />
+          </div>
+
+          {/* 3. Playback Controls */}
+          <button onClick={handleReset} disabled={frames.length === 0} className="control-btn secondary" title="Reset">
             <RotateCcw size={16} />
           </button>
-          {/* NEW: Step Backward Button */}
-          <button onClick={handleStepBackward} disabled={currentStep === 0} className="control-btn secondary">
+          <button onClick={handleStepBackward} disabled={currentStep === 0 || isPlaying} className="control-btn secondary" title="Step Backward">
             <ChevronLeft size={16} />
           </button>
-          <button onClick={handleStepForward} disabled={currentStep >= frames.length - 1} className="control-btn secondary">
-            <ChevronRight size={16} />
+          <button onClick={handlePlayPause} disabled={frames.length === 0} className="control-btn secondary" title="Play/Pause">
+            {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
           </button>
-          <button onClick={handleRun} disabled={isRunning} className="control-btn primary">
-            <Play size={16} fill="currentColor" />
-            {isRunning ? 'Simulating...' : 'Simulate'}
+          <button onClick={handleStepForward} disabled={currentStep >= frames.length - 1 || isPlaying} className="control-btn secondary" title="Step Forward">
+            <ChevronRight size={16} />
           </button>
         </div>
       </header>
