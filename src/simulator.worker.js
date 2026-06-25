@@ -72,13 +72,25 @@ self.onmessage = function(e) {
     self.postMessage({ type: 'finished', frames: executionFrames });
   } catch (error) {
     consoleLogs.push(`⚠️ Error: ${error.message}`);
-    executionFrames.push({
-      memory: structuredClone(currentMemory),
-      stack: [...callStack],
-      line: 0,
-      event: 'Execution Halted',
-      logs: [...consoleLogs]
-    });
+    try {
+      // Try to save the state where it crashed
+      executionFrames.push({
+        memory: structuredClone(currentMemory),
+        stack: [...callStack],
+        line: 0,
+        event: 'Execution Halted',
+        logs: [...consoleLogs]
+      });
+    } catch (cloneError) {
+      // If memory is unclonable (like a cyclic object), push empty memory
+      executionFrames.push({
+        memory: {},
+        stack: [...callStack],
+        line: 0,
+        event: 'Execution Halted (Memory Unclonable)',
+        logs: [...consoleLogs]
+      });
+    }
     self.postMessage({ type: 'finished', frames: executionFrames });
   }
 };

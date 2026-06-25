@@ -100,23 +100,34 @@ export function instrumentCode(sourceCode) {
       path.replaceWithMultiple(newNodes);
     },
     
-    // 6. NEW: Intercept console.log to create an immediate frame
+    // 6. Intercept console.log to create an immediate frame
     CallExpression(path) {
+      // Prevent infinite loop if we already instrumented it
+      if (path.node.__instrumented) return;
+
       const callee = path.node.callee;
-      // Check if it's console.log
+      // Strict check: is it exactly console.log?
       if (
         callee.type === 'MemberExpression' &&
+        !callee.computed &&
+        callee.object.type === 'Identifier' &&
         callee.object.name === 'console' &&
+        callee.property.type === 'Identifier' &&
         callee.property.name === 'log'
       ) {
         const line = path.node.loc.start.line;
-        // Get the arguments passed to console.log
         const args = path.node.arguments;
         
-        // Replace console.log(arg1, arg2) with __traceLog(line, arg1, arg2)
-        path.replaceWith(
-          parse(`__traceLog(${line}, ${generate({ type: 'SequenceExpression', expressions: args }).code})`).program.body[0].expression
-        );
+        // Create __traceLog(0) AST node
+        const traceCall = parse(`__traceLog(0)`).program.body[0].expression;
+        // Replace the 0 with the actual line number
+        traceCall.arguments[0] = { type: 'NumericLiteral', value: line };
+        // Push the original arguments (arr, "hello", etc.) directly into the AST
+        traceCall.arguments.push(...args);
+        
+        // Mark as instrumented so Babel ignores it on the next pass
+        traceCall.__instrumented = true;
+        path.replaceWith(traceCall);
       }
     }
   });

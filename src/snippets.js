@@ -1,5 +1,9 @@
 export const snippets = [
   {
+    name: "None",
+    code: `// Write your JavaScript code here...`
+  },
+  {
     name: "Arrays & Loops",
     code: `let arr = [10, 20, 30];
 let sum = 0;
@@ -29,8 +33,7 @@ for (let i = 0; i < arr.length; i++) {
       arr[j + 1] = temp;
     }
   }
-}
-console.log("Sorted:", arr);`
+}`
   },
   {
     name: "Sorting (Selection Sort)",
@@ -46,6 +49,79 @@ for (let i = 0; i < arr.length - 1; i++) {
   arr[i] = arr[minIdx];
   arr[minIdx] = temp;
 }`
+  },
+  {
+    name: "Sorting (Insertion Sort)",
+    code: `let arr = [9, 5, 1, 4, 3];
+for (let i = 1; i < arr.length; i++) {
+  let key = arr[i];
+  let j = i - 1;
+  while (j >= 0 && arr[j] > key) {
+    arr[j + 1] = arr[j];
+    j = j - 1;
+  }
+  arr[j + 1] = key;
+}`
+  },
+  {
+    name: "Sorting (Quick Sort)",
+    code: `let arr = [10, 80, 30, 90, 40, 50, 70];
+
+function partition(low, high) {
+  let pivot = arr[high];
+  let i = low - 1;
+  for (let j = low; j < high; j++) {
+    if (arr[j] <= pivot) {
+      i++;
+      let temp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = temp;
+    }
+  }
+  let temp = arr[i + 1];
+  arr[i + 1] = arr[high];
+  arr[high] = temp;
+  return i + 1;
+}
+
+function quickSort(low, high) {
+  if (low < high) {
+    let pi = partition(low, high);
+    quickSort(low, pi - 1);
+    quickSort(pi + 1, high);
+  }
+}
+
+quickSort(0, arr.length - 1);`
+  },
+  {
+    name: "Sorting (Merge Sort)",
+    code: `let arr = [38, 27, 43, 3, 9, 82, 10];
+
+function merge(left, mid, right) {
+  let L = arr.slice(left, mid + 1);
+  let R = arr.slice(mid + 1, right + 1);
+  let i = 0, j = 0, k = left;
+  while (i < L.length && j < R.length) {
+    if (L[i] <= R[j]) {
+      arr[k++] = L[i++];
+    } else {
+      arr[k++] = R[j++];
+    }
+  }
+  while (i < L.length) arr[k++] = L[i++];
+  while (j < R.length) arr[k++] = R[j++];
+}
+
+function mergeSort(left, right) {
+  if (left >= right) return;
+  let mid = Math.floor((left + right) / 2);
+  mergeSort(left, mid);
+  mergeSort(mid + 1, right);
+  merge(left, mid, right);
+}
+
+mergeSort(0, arr.length - 1);`
   },
   {
     name: "Searching (Linear Search)",
@@ -80,8 +156,7 @@ while (left <= right) {
   } else {
     right = mid - 1;
   }
-}
-console.log("Found at index:", foundIndex);`
+}`
   },
   {
     name: "Data Structure (Linked List)",

@@ -92,11 +92,19 @@ for (let i = 0; i < arr.length; i++) {
   };
 
   const handleSnippetChange = (e) => {
-    const selectedSnippet = snippets.find(s => s.name === e.target.value);
-      if (selectedSnippet) {
-        setCode(selectedSnippet.code);
-        handleRun(selectedSnippet.code); // Auto-run the snippet immediately!
-      }
+    const selectedName = e.target.value;
+    if (selectedName === "None") {
+      setCode(`// Write your JavaScript code here...`);
+      setFrames([]); // Clear simulation
+      setCurrentStep(0);
+      return;
+    }
+    
+    const selectedSnippet = snippets.find(s => s.name === selectedName);
+    if (selectedSnippet) {
+      setCode(selectedSnippet.code);
+      handleRun(selectedSnippet.code);
+    }
   };
 
   const handleStepForward = () => {
@@ -214,7 +222,13 @@ for (let i = 0; i < arr.length; i++) {
             height="calc(100% - 35px)"
             defaultLanguage="javascript"
             value={code}
-            onChange={(value) => setCode(value)}
+            // UPDATED: Clear frames when code changes so old simulations don't play!
+            onChange={(value) => {
+              setCode(value);
+              setFrames([]);
+              setCurrentStep(0);
+              setIsPlaying(false);
+            }}
             onMount={handleEditorDidMount}
             theme="vs-dark"
             options={{
