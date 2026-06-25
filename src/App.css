@@ -370,3 +370,50 @@
   background-color: #30363d;
   color: #c9d1d9;
 }
+
+/* Flash Animation for changing variables */
+.var-box.flash-highlight {
+  animation: flash 1s ease-out;
+}
+
+@keyframes flash {
+  0% {
+    background-color: rgba(240, 136, 62, 0.4);
+    border-color: #f0883e;
+    transform: scale(1.05);
+  }
+  100% {
+    background-color: #161b22;
+    border-color: #30363d;
+    transform: scale(1);
+  }
+}
+
+/* Logo & Dropdown Layout */
+.logo-and-snippets {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Snippets Dropdown */
+.snippets-dropdown {
+  background-color: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.snippets-dropdown:hover {
+  border-color: #8b949e;
+}
+
+.snippets-dropdown option {
+  background-color: #161b22;
+  color: #c9d1d9;
+}

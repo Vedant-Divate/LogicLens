@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 import { instrumentCode } from './engine/instrument';
 import './App.css';
 import { Play, Pause, RotateCcw, Microscope, ChevronRight, ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { snippets } from './snippets';
 
 function App() {
   const [code, setCode] = useState(`let arr = [10, 20, 30];
@@ -15,7 +16,7 @@ for (let i = 0; i < arr.length; i++) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false); // NEW: Auto-play state
   const [speed, setSpeed] = useState(800);
-  const currentLogs = frames.length > 0 ? frames[currentStep].logs : [];
+  // const currentLogs = frames.length > 0 ? frames[currentStep].logs : [];
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
 
   // NEW: Auto-play effect
@@ -67,31 +68,38 @@ for (let i = 0; i < arr.length; i++) {
     }
   }, [currentStep, frames]);
 
-  const handleRun = () => {
-    setIsRunning(true);
-    try {
-      const instrumentedCode = instrumentCode(code);
-      const worker = new Worker(new URL('./simulator.worker.js', import.meta.url), { type: 'module' });
-      
-      worker.onmessage = (e) => {
-        if (e.data.type === 'finished') {
-          setFrames(e.data.frames);
-          setCurrentStep(0);
-        } else if (e.data.type === 'error') {
-          console.error("Worker Error:", e.data.message);
-        }
+  const handleRun = (codeToRun = code) => {
+      setIsPlaying(false);
+      setIsRunning(true);
+      try {
+        const instrumentedCode = instrumentCode(codeToRun);
+        const worker = new Worker(new URL('./simulator.worker.js', import.meta.url), { type: 'module' });
+        worker.onmessage = (e) => {
+          if (e.data.type === 'finished') {
+            setFrames(e.data.frames);
+            setCurrentStep(0);
+          } else if (e.data.type === 'error') {
+            console.error("Worker Error:", e.data.message);
+          }
+          setIsRunning(false);
+          worker.terminate();
+        };
+        worker.postMessage({ instrumentedCode });
+      } catch (error) {
+        console.error("Parsing Error:", error);
         setIsRunning(false);
-        worker.terminate();
-      };
-
-      worker.postMessage({ instrumentedCode });
-    } catch (error) {
-      console.error("Parsing Error:", error);
-      setIsRunning(false);
-    }
+      }
   };
 
-    const handleStepForward = () => {
+  const handleSnippetChange = (e) => {
+    const selectedSnippet = snippets.find(s => s.name === e.target.value);
+      if (selectedSnippet) {
+        setCode(selectedSnippet.code);
+        handleRun(selectedSnippet.code); // Auto-run the snippet immediately!
+      }
+  };
+
+  const handleStepForward = () => {
     if (currentStep < frames.length - 1) setCurrentStep(prev => prev + 1);
   };
 
@@ -121,14 +129,32 @@ for (let i = 0; i < arr.length; i++) {
 
   const currentMemory = frames.length > 0 ? frames[currentStep].memory : {};
   const currentStack = frames.length > 0 ? frames[currentStep].stack : [];
-  const currentEvent = frames.length > 0 ? frames[currentStep].event : null; // ADD THIS LINE
-
+  const currentEvent = frames.length > 0 ? frames[currentStep].event : null;
+  const currentLogs = frames.length > 0 ? frames[currentStep].logs : [];
+  // NEW: Get the previous memory to detect changes
+  const prevMemory = currentStep > 0 ? frames[currentStep - 1].memory : {};
   return (
     <div className="app-container">
       <header className="header">
-        <div className="logo">
-          <Microscope size={24} className="logo-icon" />
-          <h1>Logic<span>Lens</span></h1>
+        <div className="logo-and-snippets">
+          <div className="logo">
+            <Microscope size={24} className="logo-icon" />
+            <h1>Logic<span>Lens</span></h1>
+          </div>
+    
+          {/* NEW: Snippets Dropdown */}
+          <select 
+            onChange={handleSnippetChange} 
+            defaultValue=""
+            className="snippets-dropdown"
+          >
+            <option value="" disabled>Load Example...</option>
+            {snippets.map((snippet, index) => (
+              <option key={index} value={snippet.name}>
+                {snippet.name}
+              </option>
+            ))}
+          </select>
         </div>
   
         <div className="controls">
@@ -211,17 +237,17 @@ for (let i = 0; i < arr.length; i++) {
                 <div className="memory-grid">
                   {Object.entries(currentMemory).map(([name, value]) => {
                     if (Array.isArray(value)) {
+                      // If it's a primitive (number, string, boolean)
                       return (
-                        <div key={name} className="memory-item array-container">
-                          <div className="var-label">{name}</div>
-                          <div className="array-box">
-                            {value.map((item, index) => (
-                              <div key={index} className="array-item">
-                                <span className="array-index">{index}</span>
-                                <span className="array-value">{JSON.stringify(item)}</span>
-                              </div>
-                            ))}
-                          </div>
+                        <div 
+                          key={name} 
+                          className={`memory-item var-box ${
+                            // Flash if the value is different from the previous frame
+                            (JSON.stringify(prevMemory[name]) !== JSON.stringify(value)) ? 'flash-highlight' : ''
+                          }`}
+                        >
+                          <span className="var-name">{name}</span>
+                          <span className="var-value">{JSON.stringify(value)}</span>
                         </div>
                       );
                     }
