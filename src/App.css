@@ -419,3 +419,14 @@
   background-color: #161b22;
   color: #c9d1d9;
 }
+
+/* Highlight the array index currently being accessed by a pointer */
+.array-item.active-index {
+  background-color: rgba(88, 166, 255, 0.15);
+  box-shadow: inset 0 0 0 2px #58a6ff;
+  transform: translateY(-3px); /* Makes it pop out slightly */
+}
+
+.array-item.active-index .array-value {
+  color: #58a6ff;
+}

@@ -131,8 +131,14 @@ for (let i = 0; i < arr.length; i++) {
   const currentStack = frames.length > 0 ? frames[currentStep].stack : [];
   const currentEvent = frames.length > 0 ? frames[currentStep].event : null;
   const currentLogs = frames.length > 0 ? frames[currentStep].logs : [];
-  // NEW: Get the previous memory to detect changes
   const prevMemory = currentStep > 0 ? frames[currentStep - 1].memory : {};
+  
+  // NEW: Find active array pointers (i, j, mid, left, right)
+  const pointerVars = ['i', 'j', 'mid', 'left', 'right', 'minIdx'];
+  const activeIndices = pointerVars
+    .map(v => currentMemory[v])
+    .filter(val => typeof val === 'number'); // Array of numbers representing active indices
+
   return (
     <div className="app-container">
       <header className="header">
@@ -239,7 +245,7 @@ for (let i = 0; i < arr.length; i++) {
                     // Check if value changed from previous frame
                     const hasChanged = JSON.stringify(prevMemory[name]) !== JSON.stringify(value);
                     const flashClass = hasChanged ? 'flash-highlight' : '';
-                    
+
                     // Force React to remount the element if the value changes so the CSS animation restarts!
                     const dynamicKey = `${name}-${JSON.stringify(value)}`;
 
@@ -249,7 +255,11 @@ for (let i = 0; i < arr.length; i++) {
                           <div className="var-label">{name}</div>
                           <div className="array-box">
                             {value.map((item, index) => (
-                              <div key={index} className="array-item">
+                              <div 
+                                key={index} 
+                                // NEW: Add active-index class if this index is being tracked
+                                className={`array-item ${activeIndices.includes(index) ? 'active-index' : ''}`}
+                              >
                                 <span className="array-index">{index}</span>
                                 <span className="array-value">{JSON.stringify(item)}</span>
                               </div>
