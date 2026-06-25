@@ -236,24 +236,31 @@ for (let i = 0; i < arr.length; i++) {
               ) : (
                 <div className="memory-grid">
                   {Object.entries(currentMemory).map(([name, value]) => {
+                    // Check if value changed from previous frame
+                    const hasChanged = JSON.stringify(prevMemory[name]) !== JSON.stringify(value);
+                    const flashClass = hasChanged ? 'flash-highlight' : '';
+                    
+                    // Force React to remount the element if the value changes so the CSS animation restarts!
+                    const dynamicKey = `${name}-${JSON.stringify(value)}`;
+
                     if (Array.isArray(value)) {
-                      // If it's a primitive (number, string, boolean)
                       return (
-                        <div 
-                          key={name} 
-                          className={`memory-item var-box ${
-                            // Flash if the value is different from the previous frame
-                            (JSON.stringify(prevMemory[name]) !== JSON.stringify(value)) ? 'flash-highlight' : ''
-                          }`}
-                        >
-                          <span className="var-name">{name}</span>
-                          <span className="var-value">{JSON.stringify(value)}</span>
+                        <div key={dynamicKey} className={`memory-item array-container ${flashClass}`}>
+                          <div className="var-label">{name}</div>
+                          <div className="array-box">
+                            {value.map((item, index) => (
+                              <div key={index} className="array-item">
+                                <span className="array-index">{index}</span>
+                                <span className="array-value">{JSON.stringify(item)}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       );
                     }
                     if (typeof value === 'object' && value !== null) {
                       return (
-                        <div key={name} className="memory-item object-container">
+                        <div key={dynamicKey} className={`memory-item object-container ${flashClass}`}>
                           <div className="var-label">{name}</div>
                           <div className="object-box">
                             {Object.entries(value).map(([key, val]) => (
@@ -267,7 +274,7 @@ for (let i = 0; i < arr.length; i++) {
                       );
                     }
                     return (
-                      <div key={name} className="memory-item var-box">
+                      <div key={dynamicKey} className={`memory-item var-box ${flashClass}`}>
                         <span className="var-name">{name}</span>
                         <span className="var-value">{JSON.stringify(value)}</span>
                       </div>

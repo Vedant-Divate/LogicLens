@@ -371,8 +371,8 @@
   color: #c9d1d9;
 }
 
-/* Flash Animation for changing variables */
-.var-box.flash-highlight {
+/* Flash Animation for ANY changing variable (primitive, array, or object) */
+.memory-item.flash-highlight {
   animation: flash 1s ease-out;
 }
 
@@ -381,11 +381,13 @@
     background-color: rgba(240, 136, 62, 0.4);
     border-color: #f0883e;
     transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(240, 136, 62, 0.3);
   }
   100% {
     background-color: #161b22;
     border-color: #30363d;
     transform: scale(1);
+    box-shadow: none;
   }
 }
 
