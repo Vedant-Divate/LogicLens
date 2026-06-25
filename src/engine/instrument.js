@@ -6,6 +6,12 @@ const traverse = _traverse.default || _traverse;
 const generate = _generate.default || _generate;
 
 export function instrumentCode(sourceCode) {
+  // SAFETY CHECK: Ensure we always pass a string to Babel
+  if (typeof sourceCode !== 'string' || sourceCode.trim() === '') {
+    return ''; // Return empty string if code is empty or undefined
+  }
+
+  // 1. Parse the code into an AST
   const ast = parse(sourceCode, {
     sourceType: "module",
     plugins: ["jsx", "typescript"]
@@ -47,23 +53,39 @@ export function instrumentCode(sourceCode) {
         path.getStatementParent().insertAfter(traceCall);
       }
     },
-        // 4. Track Function Calls
-    FunctionDeclaration(path) {
-      const funcName = path.node.id.name;
-      const line = path.node.loc.start.line;
+    // 4. Track Function Calls
+    // NEW: Track variables inside for-loop headers (i, j)
+    ForStatement(path) {
+      if (path.node.__instrumented) return;
       
-      // NEW: Grab the parameter names (e.g., ["n"])
-      const paramNames = path.node.params
-        .filter(p => p.type === 'Identifier')
-        .map(p => p.name);
+      // Ensure the loop body is a block statement { ... }
+      if (path.node.body.type !== 'BlockStatement') {
+        path.node.body = { type: 'BlockStatement', body: [path.node.body] };
+      }
       
-      // Create an array string to pass the values at runtime, e.g., [n]
-      const argsArrayString = `[${paramNames.join(', ')}]`;
+      const varsToTrace = new Set();
       
-      // Inject at the very beginning of the function body
-      path.node.body.body.unshift(
-        parse(`__pushStack("${funcName}", ${argsArrayString}, ${line});`).program.body[0]
-      );
+      // 1. Find variables in the init statement (let i = 0)
+      if (path.node.init && path.node.init.type === 'VariableDeclaration') {
+        path.node.init.declarations.forEach(dec => {
+          if (dec.id.type === 'Identifier') varsToTrace.add(dec.id.name);
+        });
+      }
+      
+      // 2. Find variables in the update statement (i++)
+      if (path.node.update && path.node.update.type === 'UpdateExpression' && path.node.update.argument.type === 'Identifier') {
+        varsToTrace.add(path.node.update.argument.name);
+      }
+      
+      // 3. Inject tracking hooks at the START of the loop body
+      const traceNodes = Array.from(varsToTrace).map(v => {
+        const node = parse(`typeof ${v} !== 'undefined' && __traceVariable("${v}", ${v}, ${path.node.loc.start.line});`).program.body[0];
+        node.__instrumented = true;
+        return node;
+      });
+      
+      path.node.body.body.unshift(...traceNodes);
+      path.node.__instrumented = true;
     },
     // 5. NEW: Track Function Returns
     ReturnStatement(path) {
@@ -102,11 +124,9 @@ export function instrumentCode(sourceCode) {
     
     // 6. Intercept console.log to create an immediate frame
     CallExpression(path) {
-      // Prevent infinite loop if we already instrumented it
       if (path.node.__instrumented) return;
 
       const callee = path.node.callee;
-      // Strict check: is it exactly console.log?
       if (
         callee.type === 'MemberExpression' &&
         !callee.computed &&
@@ -118,14 +138,15 @@ export function instrumentCode(sourceCode) {
         const line = path.node.loc.start.line;
         const args = path.node.arguments;
         
-        // Create __traceLog(0) AST node
-        const traceCall = parse(`__traceLog(0)`).program.body[0].expression;
-        // Replace the 0 with the actual line number
-        traceCall.arguments[0] = { type: 'NumericLiteral', value: line };
-        // Push the original arguments (arr, "hello", etc.) directly into the AST
-        traceCall.arguments.push(...args);
+        // Safely convert arguments back to code strings
+        const argsString = args.map(arg => generate(arg).code).join(', ');
         
-        // Mark as instrumented so Babel ignores it on the next pass
+        // SAFETY CHECK: Ensure argsString isn't empty
+        const codeToParse = argsString.length > 0 
+          ? `__traceLog(${line}, ${argsString})` 
+          : `__traceLog(${line})`;
+          
+        const traceCall = parse(codeToParse).program.body[0].expression;
         traceCall.__instrumented = true;
         path.replaceWith(traceCall);
       }

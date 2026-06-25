@@ -173,7 +173,7 @@ for (let i = 0; i < arr.length; i++) {
   
         <div className="controls">
           {/* 1. Simulate Button */}
-          <button onClick={handleRun} disabled={isRunning} className="control-btn primary" title="Run Simulation">
+          <button onClick={() => handleRun()} disabled={isRunning} className="control-btn primary" title="Run Simulation">
             {isRunning ? 'Simulating...' : 'Simulate'}
           </button>
 
