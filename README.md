@@ -63,10 +63,8 @@ The entire execution pipeline is built using **AST instrumentation**, **Web Work
 
 ## System Architecture
 
-```
+![Alt Text](assets/img.png)
 
-
-```
 ---
 
 #  Execution Pipeline
