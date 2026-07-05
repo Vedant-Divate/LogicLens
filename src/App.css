@@ -6,6 +6,7 @@
   background-color: #0d1117;
   color: #c9d1d9;
   font-family: 'Space Grotesk', sans-serif;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -468,13 +469,15 @@
     flex-direction: column !important;
   }
 
-  /* FORCE the editor to take up top half */
+    /* FORCE the editor to take up top half */
   .editor-pane {
     width: 100% !important;
     height: 45vh !important;
     border-right: none !important;
     border-bottom: 1px solid #30363d !important;
     flex: none !important;
+    min-width: 0 !important; /* Forces Monaco to shrink properly */
+    overflow: hidden !important;
   }
 
   /* FORCE the visualizer to take up bottom half */
@@ -482,8 +485,9 @@
     width: 100% !important;
     height: 55vh !important;
     flex: none !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important; /* Prevents horizontal scroll/gap */
   }
-  
   /* Adjust internal heights of the visualizer panes for mobile */
   .memory-section {
     flex: 3;
