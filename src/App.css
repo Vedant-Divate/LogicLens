@@ -504,14 +504,15 @@
   }
   
   /* Give Call Stack more space so it isn't squished */
+    /* Give Memory the majority of the space on mobile */
   .memory-section {
-    flex: 2 1 40% !important;
-    min-height: 120px;
+    flex: 3 1 65% !important; /* Memory gets 65% of the bottom half */
+    min-height: 150px;
   }
   
   .stack-section {
-    flex: 3 1 60% !important; /* Call stack gets 60% of the bottom half */
-    min-height: 150px;
+    flex: 2 1 35% !important; /* Call stack gets 35% of the bottom half */
+    min-height: 100px;
   }
 
   .array-box {
