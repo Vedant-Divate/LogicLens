@@ -444,24 +444,38 @@
    RESPONSIVE DESIGN (Mobile & Tablets)
    ========================================= */
 
+/* =========================================
+   RESPONSIVE DESIGN (Mobile & Tablets)
+   ========================================= */
+
 @media (max-width: 900px) {
-  /* Stack the header items vertically */
+  /* Allow header to wrap items to multiple lines */
   .header {
-    flex-direction: column;
+    flex-wrap: wrap;
     height: auto;
     padding: 10px;
-    gap: 12px;
+    gap: 10px;
+    justify-content: center;
   }
 
+  /* Make logo and dropdown take full width on their own row */
   .logo-and-snippets {
     width: 100%;
     justify-content: space-between;
   }
 
+  /* Ensure the dropdown shrinks to fit */
+  .snippets-dropdown {
+    flex: 1;
+    max-width: 200px;
+  }
+
+  /* Controls go on the next row, centered */
   .controls {
     width: 100%;
     flex-wrap: wrap;
     justify-content: center;
+    gap: 6px;
   }
 
   /* FORCE the main content to stack vertically */
@@ -469,34 +483,35 @@
     flex-direction: column !important;
   }
 
-    /* FORCE the editor to take up top half */
+  /* FORCE the editor to take up top half */
   .editor-pane {
     width: 100% !important;
-    height: 45vh !important;
+    height: 40vh !important;
     border-right: none !important;
     border-bottom: 1px solid #30363d !important;
     flex: none !important;
-    min-width: 0 !important; /* Forces Monaco to shrink properly */
+    min-width: 0 !important;
     overflow: hidden !important;
   }
 
   /* FORCE the visualizer to take up bottom half */
   .visualizer-pane {
     width: 100% !important;
-    height: 55vh !important;
+    height: 60vh !important;
     flex: none !important;
     min-width: 0 !important;
-    overflow-x: hidden !important; /* Prevents horizontal scroll/gap */
+    overflow-x: hidden !important;
   }
-  /* Adjust internal heights of the visualizer panes for mobile */
+  
+  /* Give Call Stack more space so it isn't squished */
   .memory-section {
-    flex: 3;
-    min-height: 100px;
+    flex: 2 1 40% !important;
+    min-height: 120px;
   }
   
   .stack-section {
-    flex: 2;
-    min-height: 80px;
+    flex: 3 1 60% !important; /* Call stack gets 60% of the bottom half */
+    min-height: 150px;
   }
 
   .array-box {
