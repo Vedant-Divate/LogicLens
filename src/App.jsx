@@ -219,7 +219,7 @@ for (let i = 0; i < arr.length; i++) {
         <div className="editor-pane">
           <div className="pane-header"><span>script.js</span></div>
           <Editor
-            height="calc(100% - 35px)"
+            height="100%"
             defaultLanguage="javascript"
             value={code}
             // UPDATED: Clear frames when code changes so old simulations don't play!

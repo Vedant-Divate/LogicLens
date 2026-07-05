@@ -430,3 +430,73 @@
 .array-item.active-index .array-value {
   color: #58a6ff;
 }
+
+/* =========================================
+   RESPONSIVE DESIGN (Mobile & Tablets)
+   ========================================= */
+
+/* =========================================
+   RESPONSIVE DESIGN (Mobile & Tablets)
+   ========================================= */
+
+/* =========================================
+   RESPONSIVE DESIGN (Mobile & Tablets)
+   ========================================= */
+
+@media (max-width: 900px) {
+  /* Stack the header items vertically */
+  .header {
+    flex-direction: column;
+    height: auto;
+    padding: 10px;
+    gap: 12px;
+  }
+
+  .logo-and-snippets {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .controls {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* FORCE the main content to stack vertically */
+  .main-content {
+    flex-direction: column !important;
+  }
+
+  /* FORCE the editor to take up top half */
+  .editor-pane {
+    width: 100% !important;
+    height: 45vh !important;
+    border-right: none !important;
+    border-bottom: 1px solid #30363d !important;
+    flex: none !important;
+  }
+
+  /* FORCE the visualizer to take up bottom half */
+  .visualizer-pane {
+    width: 100% !important;
+    height: 55vh !important;
+    flex: none !important;
+  }
+  
+  /* Adjust internal heights of the visualizer panes for mobile */
+  .memory-section {
+    flex: 3;
+    min-height: 100px;
+  }
+  
+  .stack-section {
+    flex: 2;
+    min-height: 80px;
+  }
+
+  .array-box {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
