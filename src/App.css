@@ -448,34 +448,28 @@
    RESPONSIVE DESIGN (Mobile & Tablets)
    ========================================= */
 
+/* =========================================
+   RESPONSIVE DESIGN (Mobile & Tablets)
+   ========================================= */
+
 @media (max-width: 900px) {
-  /* Allow header to wrap items to multiple lines */
+  /* Stack the header items vertically */
   .header {
-    flex-wrap: wrap;
+    flex-direction: column;
     height: auto;
     padding: 10px;
-    gap: 10px;
-    justify-content: center;
+    gap: 12px;
   }
 
-  /* Make logo and dropdown take full width on their own row */
   .logo-and-snippets {
     width: 100%;
     justify-content: space-between;
   }
 
-  /* Ensure the dropdown shrinks to fit */
-  .snippets-dropdown {
-    flex: 1;
-    max-width: 200px;
-  }
-
-  /* Controls go on the next row, centered */
   .controls {
     width: 100%;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 6px;
   }
 
   /* FORCE the main content to stack vertically */
@@ -486,33 +480,28 @@
   /* FORCE the editor to take up top half */
   .editor-pane {
     width: 100% !important;
-    height: 40vh !important;
+    height: 45vh !important;
     border-right: none !important;
     border-bottom: 1px solid #30363d !important;
     flex: none !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
   }
 
   /* FORCE the visualizer to take up bottom half */
   .visualizer-pane {
     width: 100% !important;
-    height: 60vh !important;
+    height: 55vh !important;
     flex: none !important;
-    min-width: 0 !important;
-    overflow-x: hidden !important;
   }
   
-  /* Give Call Stack more space so it isn't squished */
-    /* Give Memory the majority of the space on mobile */
+  /* Adjust internal heights of the visualizer panes for mobile */
   .memory-section {
-    flex: 3 1 65% !important; /* Memory gets 65% of the bottom half */
-    min-height: 150px;
+    flex: 3;
+    min-height: 100px;
   }
   
   .stack-section {
-    flex: 2 1 35% !important; /* Call stack gets 35% of the bottom half */
-    min-height: 100px;
+    flex: 2;
+    min-height: 80px;
   }
 
   .array-box {
