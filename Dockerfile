@@ -1,6 +1,10 @@
 # Stage 1: Build the Vite React App
-FROM node:18-alpine as build
+FROM node:20-alpine as build
 WORKDIR /app
+
+# Increase memory limit for Vite build
+ENV NODE_OPTIONS=--max_old_space_size=4096
+
 COPY package*.json ./
 RUN npm ci
 COPY . .
